@@ -4,7 +4,10 @@ const cors = require('cors');
 const path = require('path');
 const morgan = require('morgan');
 
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+if (process.env.NODE_ENV === 'development') {
+    require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+}
+
 
 const authRoutes = require('./app/routes/authRoutes')
 
@@ -16,7 +19,7 @@ app.use(morgan('combined'))
 
 async function run() {
     try {
-        await mongoose.connect(process.env.DB_CONNECTION_STRING);
+        await mongoose.connect(process.env['DB_CONNECTION_STRING']);
 
         app.listen(process.env.PORT, () => {
 
