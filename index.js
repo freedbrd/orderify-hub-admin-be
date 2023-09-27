@@ -25,9 +25,7 @@ async function run() {
 
             console.log(`Server is listening on ${process.env.PORT} port`)
         })
-
-
-    } catch(err) {
+    } catch (err) {
         console.log(err)
     }
 }
