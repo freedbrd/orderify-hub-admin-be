@@ -8,8 +8,11 @@ if (process.env.NODE_ENV === 'development') {
     require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 }
 
+const verifyToken = require('./app/middlewares/verify-token')
+
 
 const authRoutes = require('./app/routes/authRoutes')
+const businessProfile = require('./app/routes/businessProfile')
 
 const mongoose = require("mongoose");
 
@@ -37,9 +40,15 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use('/auth', authRoutes);
+app.use('/businessProfile', verifyToken, businessProfile);
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Promise Rejection:', reason);
+});
+
 
 app.use((req, res) => {
     res.status(404).json({
-        not_found: true
+        not_found: true     
     })
 })

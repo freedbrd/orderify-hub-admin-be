@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const createUser = async (req, res) => {
-    const { email, password, name } = new UserModel(req.body);
+    const { email, password, name } = req.body;
 
     if (!email || !password) {
         res.status(400).json({
@@ -59,10 +59,9 @@ const loginUser = async (req, res) => {
     const { email, password, remember } = req.body;
 
     if (!email) {
-        throw {
-            status: 400,
+        return res.status(400).json({
             message: 'Email is missing'
-        }
+        })
     }
 
     try {
