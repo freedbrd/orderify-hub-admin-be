@@ -19,7 +19,8 @@ const businessProfileSchema = new mongoose.Schema({
     ref: 'user',
     required: true,
   },
-});
+  
+}, { timestamps: true });
 
 const BusinessProfile = mongoose.model('businessProfile', businessProfileSchema);
 

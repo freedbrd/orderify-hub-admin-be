@@ -43,12 +43,22 @@ const createBusinessProfile = async (req, res) => {
 
 const getAllBusinessProfiles = async (req, res) => {
     try {
-        const businessProfiles = await BusinessProfile.find();
-        res.json(businessProfiles);
+        const businessProfiles = await BusinessProfile.find({}, 'id name type currency userId')
+            .sort({ createdAt: -1 })
+            .lean();
+        
+        const formattedProfiles = businessProfiles.map(profile => {
+            profile.id = profile._id;
+            delete profile._id;
+            return profile;
+        });
+
+        res.json(formattedProfiles);
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
+
 
 const getBusinessProfileById = async (req, res) => {
     const { id } = req.params;

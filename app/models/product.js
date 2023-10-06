@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
     ref: 'businessProfile',
     required: true,
   },
-});
+}, { timestamps: true });
 
 const Product = mongoose.model('product', productSchema);
 

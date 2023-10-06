@@ -45,7 +45,7 @@ async function connectToDatabase() {
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/businessProfile', verifyToken, businessProfileRoutes);
+app.use('/business-profiles', verifyToken, businessProfileRoutes);
 app.use('/products', verifyToken, productsRoutes);
 
 // 404 Error Handling

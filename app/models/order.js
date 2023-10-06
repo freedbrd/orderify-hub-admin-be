@@ -15,11 +15,7 @@ const orderSchema = new mongoose.Schema({
     ref: 'businessProfile',
     required: true,
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
-});
+}, { timestamps: true });
 
 const Order = mongoose.model('order', orderSchema);
 
