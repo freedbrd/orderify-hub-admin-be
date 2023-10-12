@@ -42,8 +42,10 @@ const createBusinessProfile = async (req, res) => {
 }
 
 const getAllBusinessProfiles = async (req, res) => {
+    const { userId } = req.user;
+
     try {
-        const businessProfiles = await BusinessProfile.find({}, 'id name type currency userId')
+        const businessProfiles = await BusinessProfile.find({ userId }, 'id name type currency userId')
             .sort({ createdAt: -1 })
             .lean();
         
@@ -62,13 +64,25 @@ const getAllBusinessProfiles = async (req, res) => {
 
 const getBusinessProfileById = async (req, res) => {
     const { id } = req.params;
+    const { userId } = req.user;
+
     try {
-        const businessProfile = await BusinessProfile.findById(id);
+        const businessProfile = await BusinessProfile.findOne({ _id: id, userId }).lean();
+
         if (!businessProfile) {
             res.status(404).json({ message: 'Business Profile not found' });
             return;
         }
-        res.json(businessProfile);
+
+        const formattedProfile = {
+            ...businessProfile,
+            id: businessProfile._id
+        }
+
+        delete formattedProfile._id;
+        delete formattedProfile.__v;
+
+        res.json(formattedProfile);
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
@@ -77,11 +91,13 @@ const getBusinessProfileById = async (req, res) => {
 const updateBusinessProfile = async (req, res) => {
     const { id } = req.params;
     const { name, type, currency } = req.body;
+    const { userId } = req.user;
 
     try {
-        const businessProfile = await BusinessProfile.findByIdAndUpdate(
-            id,
+        const businessProfile = await BusinessProfile.findOneAndUpdate(
+            { _id: id, userId },
             { name, type, currency },
+            { new: true }
         );
 
         if (!businessProfile) {
@@ -91,23 +107,25 @@ const updateBusinessProfile = async (req, res) => {
 
         res.json(businessProfile);
     } catch (error) {
+        console.log
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
 
 const deleteBusinessProfile = async (req, res) => {
     const { id } = req.params;
+    const { userId } = req.user;
 
     try {
-        const deletedBusinessProfile = await BusinessProfile.findByIdAndRemove(id);
+        const deletedBusinessProfile = await BusinessProfile.findOneAndRemove({ _id: id, userId });
 
         if (!deletedBusinessProfile) {
-            return res.status(404).json({ error: 'Product not found' });
+            return res.status(404).json({ message: 'Business Profile not found' });
         }
 
         res.json(deletedBusinessProfile);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 };
 
