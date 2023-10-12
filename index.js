@@ -8,6 +8,7 @@ const verifyToken = require('./app/middlewares/verify-token');
 const authRoutes = require('./app/routes/authRoutes');
 const businessProfileRoutes = require('./app/routes/businessProfile');
 const productsRoutes = require('./app/routes/productRoutes');
+const categoryRoutes = require('./app/routes/categoryRoutes');
 
 if (process.env.NODE_ENV === 'development') {
     require('dotenv').config({ path: path.resolve(__dirname, '.env') });
@@ -47,6 +48,7 @@ async function connectToDatabase() {
 app.use('/auth', authRoutes);
 app.use('/business-profiles', verifyToken, businessProfileRoutes);
 app.use('/products', verifyToken, productsRoutes);
+app.use('/category', verifyToken, categoryRoutes);
 
 // 404 Error Handling
 app.use((req, res) => {
