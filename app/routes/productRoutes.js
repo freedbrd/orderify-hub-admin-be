@@ -7,6 +7,7 @@ const {
     getProductById,
     updateProduct,
     deleteProduct,
+    getProductsByBusinessProfileId,
 } = require('../controllers/productController')
 
 router
@@ -15,5 +16,6 @@ router
     .post('/', createProduct)
     .patch('/:id', updateProduct)
     .delete('/', deleteProduct)
+    .get('/business/:businessProfileId', getProductsByBusinessProfileId);
 
 module.exports = router;
