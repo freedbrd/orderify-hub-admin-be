@@ -44,8 +44,16 @@ const getAllProducts = async (req, res) => {
     const { userId } = req.user; // Get the user's ID from the request
 
     try {
-        const products = await Product.find({ userId });
-        res.json(products);
+        const products = await Product.find({ userId }).lean();
+
+        const formatteProducts = products.map(product => {
+            product.id = product._id;
+            delete product._id;
+            return product;
+        });
+
+
+        res.json(formatteProducts);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -57,13 +65,21 @@ const getProductById = async (req, res) => {
     const { userId } = req.user; // Get the user's ID from the request
 
     try {
-        const product = await Product.findOne({ _id: id, userId });
+        const product = await Product.findOne({ _id: id, userId }).lean();
 
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        res.json(product);
+        const formatteProduct = {
+            id: product._id,
+            ...product
+        }
+
+        delete formatteProduct._id
+        delete formatteProduct.__v
+
+        res.json(formatteProduct);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -125,9 +141,16 @@ const getProductsByBusinessProfileId = async (req, res) => {
     const { userId } = req.user; // Get the user's ID from the request
 
     try {
-        const products = await Product.find({ id_business_profile: businessProfileId, userId });
+        const products = await Product.find({ id_business_profile: businessProfileId, userId }).lean();
+
+        const formatteProducts = products.map(product => {
+            product.id = product._id;
+            delete product._id;
+            delete product.__v;
+            return product;
+        });
         
-        res.json(products);
+        res.json(formatteProducts);
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }

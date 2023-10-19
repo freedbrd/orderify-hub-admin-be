@@ -15,7 +15,7 @@ router
     .get('/:id', getProductById)
     .post('/', createProduct)
     .patch('/:id', updateProduct)
-    .delete('/', deleteProduct)
+    .delete('/:id', deleteProduct)
     .get('/business/:businessProfileId', getProductsByBusinessProfileId);
 
 module.exports = router;

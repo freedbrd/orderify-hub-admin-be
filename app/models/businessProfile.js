@@ -7,7 +7,7 @@ const businessProfileSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['products', 'booking'],
+    enum: ['product', 'service'],
     required: true,
   },
   currency: {
@@ -20,7 +20,7 @@ const businessProfileSchema = new mongoose.Schema({
     required: true,
   },
   
-}, { timestamps: true });
+}, { timestamps: true, versionKey: false });
 
 const BusinessProfile = mongoose.model('businessProfile', businessProfileSchema);
 

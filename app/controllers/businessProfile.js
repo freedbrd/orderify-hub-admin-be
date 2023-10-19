@@ -1,132 +1,134 @@
+const Joi = require('joi');
 const BusinessProfile = require('../models/businessProfile')
+const formatResponse = require('../helpers/formatResponse');
+
+const businessProfileValidationSchema = Joi.object({
+    name: Joi.string().required(),
+    type: Joi.string().valid('product', 'service').required(),
+    currency: Joi.string().required(),
+    userId: Joi.string().required(),
+});
 
 const createBusinessProfile = async (req, res) => {
-    const businessProfileData = req.body;
-    const {userId} = req.user;
+  try {
+    const { error } = businessProfileValidationSchema.validate(req.body);
 
-    try {
-        const businessProfile = new BusinessProfile({
-            ...businessProfileData,
-            userId
-        });
-
-        const validation = businessProfile.validateSync();
-
-        if (validation) {
-            throw {
-                status: 400,
-                message: 'Invalid business profile data',
-                details: validation?.errors,
-            }
-        }
-
-        await businessProfile.save();
-
-        
-
-        const businessProfileObject = {
-            id: businessProfile?._id,
-            ...businessProfile._doc,
-        }
-
-        delete businessProfileObject?._id;
-        delete businessProfileObject?.__v;
-        delete businessProfileObject?._doc;
-
-        res.json(businessProfileObject)
-
-    } catch(error) {
-        console.log('error', error)
-        res.status(error?. status ?? 500).json(error);
+    if (error) {
+      return res.status(400).json({
+        message: 'Invalid business profile data',
+        details: error.details,
+      });
     }
-}
 
-const getAllBusinessProfiles = async (req, res) => {
+    const businessProfileData = req.body;
     const { userId } = req.user;
 
-    try {
-        const businessProfiles = await BusinessProfile.find({ userId }, 'id name type currency userId')
-            .sort({ createdAt: -1 })
-            .lean();
-        
-        const formattedProfiles = businessProfiles.map(profile => {
-            profile.id = profile._id;
-            delete profile._id;
-            return profile;
-        });
+    const businessProfile = new BusinessProfile({
+      ...businessProfileData,
+      userId,
+    });
 
-        res.json(formattedProfiles);
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
+    await businessProfile.save();
+
+    res.json(formatResponse(businessProfile._doc));
+
+  } catch (error) {
+    console.error('Error:', error);  // Consider using a better logging mechanism
+    res.status(error.status || 500).json({
+      message: error.message || 'Internal Server Error',
+    });
+  }
+};
+
+const getAllBusinessProfiles = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    const businessProfiles = await BusinessProfile.find({ userId }, 'id name type currency userId')
+    .sort({ createdAt: -1 })
+    .lean();
+
+    const formattedProfiles = businessProfiles.map(profile => formatResponse(profile));
+
+    res.json(formattedProfiles);
+  } catch (error) {
+    console.error('Error:', error);  // Consider using a better logging mechanism
+    res.status(500).json({
+      message: error.message || 'Internal Server Error',
+    });
+  }
 };
 
 
 const getBusinessProfileById = async (req, res) => {
-    const { id } = req.params;
-    const { userId } = req.user;
+  const {id} = req.params;
+  const {userId} = req.user;
 
-    try {
-        const businessProfile = await BusinessProfile.findOne({ _id: id, userId }).lean();
+  try {
+    const businessProfile = await BusinessProfile.findOne({
+      _id: id,
+      userId
+    }).lean();
 
-        if (!businessProfile) {
-            res.status(404).json({ message: 'Business Profile not found' });
-            return;
-        }
+    if (!businessProfile) {
+      res.status(404).json({
+        message: 'Business Profile not found'
+      });
 
-        const formattedProfile = {
-            ...businessProfile,
-            id: businessProfile._id
-        }
-
-        delete formattedProfile._id;
-        delete formattedProfile.__v;
-
-        res.json(formattedProfile);
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+      return;
     }
+
+    res.json(formatResponse(businessProfile));
+
+
+  } catch (error) {
+    console.error('Error:', error);
+
+    res.status(500).json({
+      message: error.message || 'Internal Server Error',
+    });
+  }
 };
 
 const updateBusinessProfile = async (req, res) => {
-    const { id } = req.params;
-    const { name, type, currency } = req.body;
-    const { userId } = req.user;
+  const { id } = req.params;
+  const { name, type, currency } = req.body;
+  const { userId } = req.user;
 
-    try {
-        const businessProfile = await BusinessProfile.findOneAndUpdate(
-            { _id: id, userId },
-            { name, type, currency },
-            { new: true }
-        );
+  try {
+    const businessProfile = await BusinessProfile.findOneAndUpdate(
+        { _id: id, userId },
+        { name, type, currency },
+        { new: true }
+    ).lean();
 
-        if (!businessProfile) {
-            res.status(404).json({ message: 'Business Profile not found' });
-            return;
-        }
-
-        res.json(businessProfile);
-    } catch (error) {
-        console.log
-        res.status(500).json({ message: 'Internal Server Error' });
+    if (!businessProfile) {
+      return res.status(404).json({ message: 'Business Profile not found' });
     }
+
+    res.json(formatResponse(businessProfile));
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: error.message || 'Internal Server Error' });
+  }
 };
 
 const deleteBusinessProfile = async (req, res) => {
-    const { id } = req.params;
-    const { userId } = req.user;
+  const { id } = req.params;
+  const { userId } = req.user;
 
-    try {
-        const deletedBusinessProfile = await BusinessProfile.findOneAndRemove({ _id: id, userId });
+  try {
+    const deletedBusinessProfile = await BusinessProfile.findOneAndRemove({ _id: id, userId }).lean();
 
-        if (!deletedBusinessProfile) {
-            return res.status(404).json({ message: 'Business Profile not found' });
-        }
-
-        res.json(deletedBusinessProfile);
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+    if (!deletedBusinessProfile) {
+      return res.status(404).json({ message: 'Business Profile not found' });
     }
+
+    res.json(formatResponse(deletedBusinessProfile));
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: error.message || 'Internal Server Error' });
+  }
 };
 
 
